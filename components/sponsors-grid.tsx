@@ -1,133 +1,103 @@
-import Image from "next/image";
-
 import type { PublicEventData } from "@/lib/happily/types";
 
 import { ordered } from "./helpers";
-
-type SponsorTier = NonNullable<PublicEventData["sponsors"][number]["tier"]>;
 
 type SponsorsGridProps = {
   sponsors: PublicEventData["sponsors"];
 };
 
-function calculateLogoHeight(tierOrder: number) {
-  const baseSize = 50;
-  const scalingFactor = 0.85;
-  return baseSize * Math.pow(scalingFactor, tierOrder);
-}
+// How many logos make up one full halo revolution along the strip —
+// smaller = tighter, more visible curve. Depth is conveyed by scale
+// alone (near = bigger) so every logo stays fully white and level;
+// only the edge mask below fades anything, right at the page margins.
+const CYCLE_LENGTH = 8;
+const MIN_SCALE = 0.85;
+const MAX_SCALE = 1.05;
 
-function calculateMaxWidth(logoHeight: number) {
-  return logoHeight * 5;
-}
-
-function SponsorCard({
+function LogoItem({
   sponsor,
-  tierIndex = 0,
+  index,
 }: {
   sponsor: PublicEventData["sponsors"][number];
-  tierIndex?: number;
+  index: number;
 }) {
-  const logoHeight = calculateLogoHeight(tierIndex);
-  const maxWidth = calculateMaxWidth(logoHeight);
+  const angle = ((index % CYCLE_LENGTH) / CYCLE_LENGTH) * Math.PI * 2;
+  const depth = (Math.cos(angle) + 1) / 2; // 1 = front/near, 0 = back/far
+  const scale = MIN_SCALE + depth * (MAX_SCALE - MIN_SCALE);
 
-  const content = (
+  // Masked (not <Image>) so the logo's own silhouette can be recolored
+  // on hover — a filter chain like brightness-0/invert can only ever
+  // land on black or white, not an arbitrary brand color.
+  const content = sponsor.logo_url ? (
+    <span
+      role="img"
+      aria-label={sponsor.name}
+      className="block h-10 w-44 shrink-0 bg-paper transition-[transform,background-color] duration-300 ease-out hover:scale-125 hover:bg-loud sm:h-12 sm:w-52"
+      style={{
+        maskImage: `url(${sponsor.logo_url})`,
+        WebkitMaskImage: `url(${sponsor.logo_url})`,
+        maskRepeat: "no-repeat",
+        WebkitMaskRepeat: "no-repeat",
+        maskPosition: "center",
+        WebkitMaskPosition: "center",
+        maskSize: "contain",
+        WebkitMaskSize: "contain",
+      }}
+    />
+  ) : (
+    <p className="font-heading text-lg font-semibold text-paper transition-[transform,color] duration-300 ease-out hover:scale-125 hover:text-loud">
+      {sponsor.name}
+    </p>
+  );
+
+  return (
     <div
-      className="relative flex items-center justify-center overflow-hidden"
-      style={{ height: `${logoHeight}px`, maxWidth: `${maxWidth}px` }}
+      className="flex h-16 shrink-0 items-center justify-center px-10 transition-transform duration-300"
+      style={{ transform: `scale(${scale})` }}
     >
-      {sponsor.logo_url ? (
-        <Image
-          src={sponsor.logo_url}
-          alt={sponsor.name}
-          width={Math.round(maxWidth)}
-          height={Math.round(logoHeight)}
-          className="h-full object-contain"
-        />
+      {sponsor.website ? (
+        <a
+          href={sponsor.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={sponsor.name}
+          className="flex items-center"
+        >
+          {content}
+        </a>
       ) : (
-        <p className="text-lg">{sponsor.name}</p>
+        content
       )}
     </div>
   );
-
-  if (sponsor.website) {
-    return (
-      <a href={sponsor.website} target="_blank" rel="noopener noreferrer">
-        {content}
-      </a>
-    );
-  }
-
-  return content;
-}
-
-function extractTiers(sponsors: PublicEventData["sponsors"]): SponsorTier[] {
-  const seen = new Map<number, SponsorTier>();
-  for (const sponsor of sponsors) {
-    if (sponsor.tier && !seen.has(sponsor.tier.id)) {
-      seen.set(sponsor.tier.id, sponsor.tier);
-    }
-  }
-  return ordered([...seen.values()]);
 }
 
 export function SponsorsGrid({ sponsors }: SponsorsGridProps) {
-  const tiers = extractTiers(sponsors);
+  const sorted = ordered(sponsors);
 
-  if (tiers.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-x-4 gap-y-10 pt-12">
-        <div className="flex flex-col items-center justify-center gap-10 sm:flex-row">
-          {ordered(sponsors).map((sponsor) => (
-            <SponsorCard key={sponsor.id} sponsor={sponsor} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const sponsorsByTier = new Map<number, PublicEventData["sponsors"]>();
-  const untiered: PublicEventData["sponsors"] = [];
-
-  for (const sponsor of ordered(sponsors)) {
-    if (sponsor.tier_id != null) {
-      const group = sponsorsByTier.get(sponsor.tier_id) ?? [];
-      group.push(sponsor);
-      sponsorsByTier.set(sponsor.tier_id, group);
-    } else {
-      untiered.push(sponsor);
-    }
+  if (!sorted.length) {
+    return null;
   }
 
   return (
-    <div className="flex flex-col items-center gap-x-4 gap-y-10 pt-12">
-      {tiers.map((tier, tierIndex) => {
-        const tierSponsors = sponsorsByTier.get(tier.id);
-        if (!tierSponsors?.length) return null;
-
-        return (
-          <div key={tier.id}>
-            {/* <h3 className="mb-4 text-lg font-semibold text-center">
-              {tier.name}
-            </h3> */}
-            <div className="flex flex-col items-center justify-center gap-10 sm:flex-row">
-              {tierSponsors.map((sponsor) => (
-                <SponsorCard
-                  key={sponsor.id}
-                  sponsor={sponsor}
-                  tierIndex={tierIndex}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-      {untiered.length > 0 && (
-        <div className="flex flex-col items-center justify-center gap-10 sm:flex-row">
-          {untiered.map((sponsor) => (
-            <SponsorCard key={sponsor.id} sponsor={sponsor} />
-          ))}
-        </div>
-      )}
+    // Full-bleed to the actual page edges (breaking out of the section's
+    // centered max-width column) so the mask below fades logos right at
+    // the page margins, not partway through the content column.
+    <div
+      className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden py-8"
+      style={{
+        maskImage:
+          "linear-gradient(to right, transparent, black 96px, black calc(100% - 96px), transparent)",
+        WebkitMaskImage:
+          "linear-gradient(to right, transparent, black 96px, black calc(100% - 96px), transparent)",
+      }}
+    >
+      {/* Duplicated once so the -50% loop is seamless. */}
+      <div className="marquee-track flex w-max items-center">
+        {[...sorted, ...sorted].map((sponsor, i) => (
+          <LogoItem key={`${sponsor.id}-${i}`} sponsor={sponsor} index={i} />
+        ))}
+      </div>
     </div>
   );
 }

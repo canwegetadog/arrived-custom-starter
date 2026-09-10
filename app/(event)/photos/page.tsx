@@ -22,7 +22,7 @@ export default async function PhotosPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.18em]">
           Gallery
         </p>
-        <h1 className="mt-3 text-5xl font-semibold">
+        <h1 className="font-heading font-bold mt-3 text-5xl tracking-tight">
           {eventData.event.name} Photos
         </h1>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

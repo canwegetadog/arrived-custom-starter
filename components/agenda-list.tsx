@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { eventTimeRange, formatEventDate } from "./helpers";
 import { Markdown } from "./markdown";
+import { NumberTag } from "./number-tag";
 
 type AgendaListProps = {
   sessions: PublicEventData["sessions"];
@@ -68,11 +69,17 @@ function SpeakersList({ speakers }: { speakers: Speaker[] }) {
       <div className="grid gap-4 pt-6 md:grid-cols-2">
         {speakers.map((speaker) => (
           <div key={speaker.id} className="flex items-center gap-4 text-xs">
-            <Avatar className="size-14 shrink-0">
+            <Avatar className="size-14 shrink-0 rounded-(--event-border-radius) after:rounded-(--event-border-radius)">
               {speaker.image_url && (
-                <AvatarImage src={speaker.image_url} alt={speaker.name} />
+                <AvatarImage
+                  src={speaker.image_url}
+                  alt={speaker.name}
+                  className="rounded-(--event-border-radius) grayscale contrast-125"
+                />
               )}
-              <AvatarFallback>{initials(speaker.name)}</AvatarFallback>
+              <AvatarFallback className="rounded-(--event-border-radius)">
+                {initials(speaker.name)}
+              </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="font-bold">{speaker.name}</p>
@@ -102,7 +109,7 @@ function SessionAccordion({
 }) {
   return (
     <Accordion type="single" collapsible className="font-body grid grid-cols-1">
-      {sessions.map((session) => {
+      {sessions.map((session, i) => {
         const timeLabel = eventTimeRange({
           ...event,
           start_date: session.start_time,
@@ -128,16 +135,20 @@ function SessionAccordion({
           <AccordionItem value={session.id} key={session.id}>
             <AccordionTrigger
               disabled={!hasContent}
-              className="w-full no-underline hover:no-underline md:grid md:grid-cols-10 md:gap-x-10 lg:gap-x-20"
+              className="w-full translate-x-0 no-underline transition-[background-color,transform] duration-500 ease-out hover:translate-x-1 hover:bg-loud/5 hover:no-underline md:grid md:grid-cols-10 md:gap-x-10 lg:gap-x-20"
             >
-              <div className="font-heading hidden text-sm md:col-span-3 md:flex md:flex-col md:text-lg lg:text-xl">
-                <p className="text-left">{timeLabel}</p>
-              </div>
-              <div className="flex w-full flex-col items-start text-left md:col-span-6">
-                <p className="font-heading text-left text-sm md:hidden">
+              <div className="hidden items-start gap-3 md:col-span-3 md:flex">
+                <NumberTag n={i + 1} className="border-loud text-loud" />
+                <p className="font-heading font-semibold pt-0.5 text-lg lg:text-xl">
                   {timeLabel}
                 </p>
-                <p className="text-base font-semibold tracking-wider md:text-lg lg:text-xl">
+              </div>
+              <div className="flex w-full flex-col items-start text-left md:col-span-6">
+                <div className="flex items-center gap-2 md:hidden">
+                  <NumberTag n={i + 1} className="border-loud text-loud" />
+                  <p className="font-heading font-semibold text-sm">{timeLabel}</p>
+                </div>
+                <p className="mt-2 text-base font-semibold tracking-wider md:mt-0 md:text-lg lg:text-xl">
                   {session.name}
                 </p>
               </div>
@@ -147,7 +158,7 @@ function SessionAccordion({
                 {track && (
                   <Badge
                     variant="secondary"
-                    className="cursor-auto rounded-sm font-normal"
+                    className="cursor-auto rounded-sm bg-loud px-6 py-[10px] text-sm font-bold text-ink"
                   >
                     {track.name}
                   </Badge>
@@ -155,7 +166,7 @@ function SessionAccordion({
                 {session.location && (
                   <Badge
                     variant="secondary"
-                    className="cursor-auto rounded-sm font-normal"
+                    className="cursor-auto rounded-sm bg-loud px-6 py-[10px] text-sm font-bold text-ink"
                   >
                     {session.location}
                   </Badge>

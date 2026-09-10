@@ -26,17 +26,17 @@ export function SpeakerCard({ speaker }: SpeakerCardProps) {
 
   return (
     <Dialog>
-      <article className="bg-(--event-base-bg) p-5 text-(--event-base-text)">
+      <article className="group bg-(--event-base-bg) p-5 text-(--event-base-text) transition-transform duration-500 ease-out hover:-translate-y-1">
         {speaker.image_url ? (
           <Image
             src={speaker.image_url}
             alt=""
             width={400}
             height={400}
-            className="mb-4 aspect-square w-full rounded-(--event-border-radius) object-cover"
+            className="mb-4 aspect-square w-full rounded-(--event-border-radius) object-cover grayscale contrast-125 transition-[filter] duration-500 ease-out group-hover:contrast-100"
           />
         ) : null}
-        <h3 className="text-xl font-semibold">{speaker.name}</h3>
+        <h3 className="text-xl font-bold">{speaker.name}</h3>
         <p className="mt-1 text-sm text-(--event-base-text)/60">
           {[speaker.title, speaker.company].filter(Boolean).join(", ")}
         </p>
@@ -75,7 +75,7 @@ export function SpeakerCard({ speaker }: SpeakerCardProps) {
                 alt=""
                 width={400}
                 height={400}
-                className="aspect-square rounded-(--event-border-radius) object-cover"
+                className="aspect-square rounded-(--event-border-radius) object-cover grayscale contrast-125"
               />
             </div>
           ) : null}

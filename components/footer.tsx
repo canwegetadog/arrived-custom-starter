@@ -1,41 +1,27 @@
 import Image from "next/image";
 
-type FooterProps = {
-  baseTextColor: string;
-};
+import { FadeIn } from "./fade-in";
 
-export function Footer({ baseTextColor }: FooterProps) {
-  const isLightText = isLight(baseTextColor);
-  const logo = isLightText
-    ? "/powered-by-happily-arrived-light.svg"
-    : "/powered-by-happily-arrived-dark.svg";
-
+// Black bookend band, closing out the hero's dark open.
+export function Footer() {
   return (
-    <footer className="z-10 mt-auto px-2 py-8">
-      <div className="flex flex-col items-center justify-center gap-6">
+    <footer className="relative z-10 mt-auto border-t-2 border-loud bg-ink px-2 py-10">
+      <FadeIn className="flex flex-col items-center justify-center gap-6">
         <a
           href="https://teamhappily.com/arrived?ref=starter-kit"
           target="_blank"
           rel="noopener noreferrer"
         >
           <Image
-            src={logo}
+            src="/powered-by-happily-arrived-dark.svg"
             width={292}
             height={55}
-            className="object-contain"
+            className="object-contain brightness-0 invert"
             alt="Powered by Happily Arrived"
             draggable={false}
           />
         </a>
-      </div>
+      </FadeIn>
     </footer>
   );
-}
-
-function isLight(hex: string) {
-  const c = hex.replace("#", "");
-  const r = parseInt(c.substring(0, 2), 16);
-  const g = parseInt(c.substring(2, 4), 16);
-  const b = parseInt(c.substring(4, 6), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 }

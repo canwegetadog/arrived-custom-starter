@@ -50,7 +50,7 @@ export default async function ConfirmationPage() {
               className="mb-8 aspect-4/3 w-full rounded-(--event-border-radius) object-cover"
             />
           ) : null}
-          <h1 className="text-5xl font-semibold">
+          <h1 className="font-heading font-bold text-5xl tracking-tight">
             {text(content.confirmationTitle, "You're registered")}
           </h1>
           <EventDetails event={event} />

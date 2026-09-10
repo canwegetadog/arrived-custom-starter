@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Space_Mono } from "next/font/google";
 import "../globals.css";
 
+import { CustomCursor } from "@/components/custom-cursor";
 import { EventShell } from "@/components/event-shell";
-import { styleValue } from "@/components/helpers";
 import { PreviewBanner } from "@/components/preview-banner";
 import { isPreviewRequest, resolveEventEnv } from "@/lib/happily/config";
 import { getPublicEvent } from "@/lib/happily/queries";
@@ -12,8 +12,9 @@ import { getPublicEvent } from "@/lib/happily/queries";
 // First-party analytics proxy host.
 const ANALYTICS_HOST = "https://hx.happily.events";
 
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
+const spaceMono = Space_Mono({
+  variable: "--font-display",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
@@ -41,30 +42,34 @@ export default async function EventLayout({
   const preview = await isPreviewRequest();
   const env = await resolveEventEnv();
   const eventData = await getPublicEvent({ env });
-  const styles = eventData.event.styles;
 
   // Only track published-site visits: no analytics in preview or when
   // the event has no analytics configured.
   const analyticsId = env === "prod" ? eventData.event.analytics_id : null;
 
+  // Fixed brand palette for this redesign: --event-* vars normally come
+  // from the CMS's per-event styles, but this kit intentionally overrides
+  // them with a single hardcoded system (see components/event-page.tsx)
+  // rather than the event's configured theme.
   const eventVars = {
-    "--event-primary-bg": styleValue(styles, "primaryBg", "#171717"),
-    "--event-primary-text": styleValue(styles, "primaryText", "#ffffff"),
-    "--event-secondary-bg": styleValue(styles, "secondaryBg", "#f4f4f5"),
-    "--event-secondary-text": styleValue(styles, "secondaryText", "#171717"),
-    "--event-accent-bg": styleValue(styles, "accentBg", "#171717"),
-    "--event-accent-text": styleValue(styles, "accentText", "#ffffff"),
-    "--event-base-bg": styleValue(styles, "baseBg", "#ffffff"),
-    "--event-base-text": styleValue(styles, "baseText", "#171717"),
-    "--event-border-radius": styleValue(styles, "borderRadius", "8px"),
+    "--event-primary-bg": "var(--loud)",
+    "--event-primary-text": "var(--ink)",
+    "--event-secondary-bg": "var(--pop)",
+    "--event-secondary-text": "var(--ink)",
+    "--event-accent-bg": "var(--loud)",
+    "--event-accent-text": "var(--ink)",
+    "--event-base-bg": "var(--paper)",
+    "--event-base-text": "var(--ink)",
+    "--event-border-radius": "0px",
   } as CSSProperties;
 
   return (
     <html
       lang="en"
-      className={`${openSans.variable} ${openSans.className} h-full antialiased`}
+      className={`${spaceMono.variable} ${spaceMono.className} h-full antialiased`}
     >
       <body style={eventVars} className="min-h-full flex flex-col">
+        <CustomCursor />
         {preview && <PreviewBanner />}
         {analyticsId && (
           <script

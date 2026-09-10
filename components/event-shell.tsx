@@ -2,10 +2,12 @@ import type { ReactNode } from "react";
 
 import type { PublicEventData } from "@/lib/happily/types";
 
+import { cn } from "@/lib/utils";
+
 import { Footer } from "./footer";
-import { Header } from "./header";
-import { styleValue, text } from "./helpers";
-import type { NavLinkItem } from "./navbar";
+import { text } from "./helpers";
+import type { NavLinkItem } from "./side-nav";
+import { SideNav } from "./side-nav";
 
 type EventShellProps = {
   eventData: PublicEventData;
@@ -14,15 +16,13 @@ type EventShellProps = {
 
 export function EventShell({ eventData, children }: EventShellProps) {
   const { event } = eventData;
-  const styles = event.styles;
 
   const nav: NavLinkItem[] = [
     { label: "About", href: "/#about" },
     { label: "Agenda", href: "/#agenda" },
     { label: "Speakers", href: "/#speakers" },
-    { label: "Host", href: "/#host" },
     { label: "Sponsors", href: "/#sponsors" },
-    { label: "FAQ", href: "/#faq" },
+    { label: "FAQ", href: "/#faqs" },
     ...(event.photos_toggle ? [{ label: "Gallery", href: "/photos" }] : []),
   ];
 
@@ -32,20 +32,30 @@ export function EventShell({ eventData, children }: EventShellProps) {
     buttonLinks?.navCTA.display &&
     buttonLinks.heroCTA.text;
 
+  const hideNavigation = event.display_settings.hideNavigation ?? false;
+
   return (
     <div className="flex min-h-screen flex-col bg-(--event-base-bg) text-(--event-base-text)">
-      <Header
-        logo={event.logo_url}
-        logoAlt={`${event.name} logo`}
-        nav={nav}
-        hideNavigation={event.display_settings.hideNavigation ?? false}
-        ctaText={
-          showCta ? text(buttonLinks!.heroCTA.text, "Register") : undefined
-        }
-        ctaHref={showCta ? "/#register" : undefined}
-      />
-      {children}
-      <Footer baseTextColor={styleValue(styles, "baseText", "#171717")} />
+      {!hideNavigation ? (
+        <SideNav
+          nav={nav}
+          logo={event.logo_url}
+          logoAlt={`${event.name} logo`}
+          ctaText={
+            showCta ? text(buttonLinks!.heroCTA.text, "Register") : undefined
+          }
+          ctaHref={showCta ? "/#register" : undefined}
+        />
+      ) : null}
+      <div
+        className={cn(
+          "flex flex-1 flex-col",
+          !hideNavigation && "pl-11",
+        )}
+      >
+        {children}
+        <Footer />
+      </div>
     </div>
   );
 }

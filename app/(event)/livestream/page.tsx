@@ -29,7 +29,7 @@ export default async function LivestreamPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em]">
               Livestream
             </p>
-            <h1 className="mt-3 text-5xl font-semibold">
+            <h1 className="font-heading font-bold mt-3 text-5xl tracking-tight">
               {eventData.event.name}
             </h1>
             <EventDetails event={eventData.event} />
